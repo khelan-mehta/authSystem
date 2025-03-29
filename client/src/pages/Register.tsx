@@ -15,7 +15,7 @@ import { BASE_URL, CryptoSecret } from "../env";
 
 const Register = () => {
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(""); 
   const [university, setUniversity] = useState("");
   const [password, setPassword] = useState("");
   const [deviceId, setDeviceId] = useState(""); // Add state for deviceId
@@ -140,108 +140,294 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-100 to-indigo-200 p-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-6">
-        <div className="space-y-1 mb-6">
-          <h1 className="text-3xl font-bold text-center text-indigo-900">
-            Register
-          </h1>
-          <p className="text-center text-gray-600">Create your account</p>
+    // Ensure client-side rendering for animations
+
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-lg bg-gray-900/95 backdrop-blur-md border border-gray-700 rounded-xl shadow-2xl p-8"
+      >
+        <div className="space-y-3 text-center">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="flex justify-center mb-4"
+          >
+            <svg
+              className="w-12 h-12 text-indigo-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 11c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+              />
+            </svg>
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="text-4xl font-bold text-white tracking-tight"
+          >
+            Create Account
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="text-gray-400 text-base"
+          >
+            Join our AI-powered blockchain banking platform
+          </motion.p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 mt-6">
           {/* Username */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
+            className="space-y-2"
+          >
+            <label className="text-sm font-medium text-gray-300">
               Username
             </label>
-            <input
-              type="text"
-              value={username}
-              onChange={handleChange}
-              placeholder="Enter your username"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-            />
-          </div>
+            <div className="relative">
+              <input
+                type="text"
+                value={username}
+                onChange={handleChange}
+                placeholder="Enter your username"
+                className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-500 rounded-lg py-3 pl-10 pr-4 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              />
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+          </motion.div>
 
           {/* Email */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="example12@gmail.com"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-            />
-          </div>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.6 }}
+            className="space-y-2"
+          >
+            <label className="text-sm font-medium text-gray-300">
+              Email Address
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="example@domain.com"
+                className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-500 rounded-lg py-3 pl-10 pr-4 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              />
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+          </motion.div>
 
           {/* Password */}
-          <div className="space-y-2 relative">
-            <label className="text-sm font-medium text-gray-700">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.7 }}
+            className="space-y-2 relative"
+          >
+            <label className="text-sm font-medium text-gray-300">
               Password
             </label>
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-9 text-sm text-indigo-600 hover:text-indigo-800 transition-colors"
-            >
-              {showPassword ? "Hide" : "Show"}
-            </button>
-          </div>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full bg-gray-800 border-gray-700 text-white placeholder-gray-500 rounded-lg py-3 pl-10 pr-12 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              />
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                />
+              </svg>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                {showPassword ? (
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.42 0-8-3.58-8-8s3.58-8 8-8c1.68 0 3.24.52 4.52 1.41M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.42 0-8-3.58-8-8s3.58-8 8-8c1.68 0 3.24.52 4.52 1.41M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0c0 4.42-3.58 8-8 8M3 3l18 18"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </motion.div>
 
           {/* Device ID Display */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.8 }}
+            className="space-y-2"
+          >
+            <label className="text-sm font-medium text-gray-300">
               Your Device ID
             </label>
             <div className="relative">
-              <div className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-between">
-                <span className="text-gray-600 text-sm truncate max-w-[85%]">
+              <div className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-between">
+                <span className="text-gray-400 text-sm truncate max-w-[85%]">
                   {deviceId || "Generating device identifier..."}
                 </span>
                 {deviceId && (
                   <button
                     onClick={() => navigator.clipboard.writeText(deviceId)}
-                    className="text-indigo-600 hover:text-indigo-800 text-sm transition-colors"
+                    className="text-indigo-400 hover:text-indigo-300 text-sm transition-colors"
                     title="Copy Device ID"
                   >
                     Copy
                   </button>
                 )}
               </div>
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"></div>
+              
             </div>
-            <p className="text-xs text-gray-500">
-              This unique identifier helps secure your account
-            </p>
-          </div>
+            <p className="text-xs text-gray-500">Enhances account security</p>
+          </motion.div>
 
           {/* Register Button */}
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.9 }}
             onClick={handleRegister}
-            className="w-full py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 disabled:bg-indigo-400 disabled:cursor-not-allowed"
-            disabled={!deviceId} // Disable button until deviceId is generated
+            className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+            disabled={!deviceId}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             Register
-          </button>
+          </motion.button>
 
           {/* Login Link */}
-          <p className="text-center text-sm">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 1 }}
+            className="text-center text-sm text-gray-400"
+          >
             Already have an account?{" "}
-            <a href="/login" className="text-indigo-600 hover:underline">
-              Login
+            <a
+              href="/login"
+              className="text-indigo-400 hover:text-indigo-300 transition-colors"
+            >
+              Sign In
             </a>
-          </p>
+          </motion.p>
+
+          {/* Footer Branding */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 1.1 }}
+            className="flex justify-center gap-4 text-gray-500 text-xs mt-4"
+          >
+            <span className="flex items-center gap-1">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                />
+              </svg>
+              AI-Powered
+            </span>
+            <span className="flex items-center gap-1">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              Blockchain
+            </span>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
