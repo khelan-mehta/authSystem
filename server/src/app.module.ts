@@ -11,6 +11,9 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { SessionSerializer } from './guards/Serializer';
 import { UserService } from './services/user.service';
 import { ConfigModule } from '@nestjs/config';
+import { TransactionController } from './controllers/transaction.controller';
+import { TransactionService } from './services/transaction.service';
+import { Transaction, TransactionSchema } from './schemas/transaction.schema';
 
 @Module({
   imports: [ 
@@ -31,6 +34,7 @@ import { ConfigModule } from '@nestjs/config';
       },
     }),
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+    MongooseModule.forFeature([{ name: Transaction.name, schema: TransactionSchema }]),
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your_jwt_secret', // Use environment variables for production
@@ -38,11 +42,12 @@ import { ConfigModule } from '@nestjs/config';
     }),
     
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, TransactionController],
   providers: [
     AuthService,
     UserService,
     JwtStrategy,
+    TransactionService,
     GoogleStrategy,
     SessionSerializer,
     {
