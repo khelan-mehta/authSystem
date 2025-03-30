@@ -10,6 +10,8 @@ import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/Forgot";
+import KYCVerificationPage from "./pages/Registration";
+import KYCVerification from "./pages/Validate";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/forgot" element={<ForgotPassword />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/kyc" element={<KYCVerificationPage />} /> 
+          <Route path="/validate" element={<KYCVerification />} /> 
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

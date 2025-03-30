@@ -8,6 +8,7 @@ import {
   Badge,
   ShieldX,
   ShieldAlert,
+  DollarSign,
 } from "lucide-react";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ import { Input } from "@/components/ui/input";
 import { getSession, setSession } from "@/lib/session";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import TransactionsTab from "@/components/TransactionsTab";
 
 const clearFilters = {
   transactionId: "",
@@ -85,6 +87,40 @@ const Dashboard = () => {
   const [flaggedUsers, setFlaggedUsers] = useState([]);
   const [sortedUsers, setSortedUsers] = useState(flaggedUsers);
   const [sortOrder, setSortOrder] = useState("asc");
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("access_token");
+
+      if (!userId) {
+        setError("User not logged in.");
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `http://localhost:3001/api/auth/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setUser(response.data.user);
+        if (response.data.user.isKycVerified === false) {
+          navigate("/kyc");
+        }
+        localStorage.setItem("access_token", response.data.newAccessToken);
+      } catch (err) {
+        setError("Failed to fetch user data");
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
@@ -227,11 +263,35 @@ const Dashboard = () => {
     navigate("/login");
   };
 
-  // Prepare chart data
-  const amountData = transactions.map((t) => ({
-    date: `${t.Date} ${t.Time}`,
-    amount: t.Amount,
-  }));
+  const [fraudData, setFraudData] = useState<
+    { date: string; amount: number }[]
+  >([]);
+  const [totalFraudAmount, setTotalFraudAmount] = useState(0);
+
+  useEffect(() => {
+    const fetchFraudData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3001/api/transactions/laundering"
+        ); // Adjust API URL if needed
+        const formattedData = response.data.map((t: any) => ({
+          date: `${t.Date} ${t.Time}`, // Format date and time
+          amount: t.Amount,
+          transactionId: t.Transaction_ID,
+        }));
+
+        // Calculate total fraud amount
+        const total = formattedData.reduce((sum, t) => sum + t.amount, 0);
+
+        setFraudData(formattedData);
+        setTotalFraudAmount(total);
+      } catch (error) {
+        console.error("Error fetching fraud transactions:", error);
+      }
+    };
+
+    fetchFraudData();
+  }, []);
 
   const pieData = Object.entries(launderingCategories).map(([type, txns]) => ({
     name: type || "Non-Laundering",
@@ -324,6 +384,25 @@ const Dashboard = () => {
                       Admin Panel
                     </Button>
                   </motion.div>
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Button
+                      variant={
+                        activeTab === "transactions" ? "default" : "ghost"
+                      }
+                      className={`w-full justify-start text-gray-300 hover:text-indigo-400 hover:bg-gray-800 transition-all ${
+                        activeTab === "transactions"
+                          ? "bg-indigo-600 text-white"
+                          : ""
+                      }`}
+                      onClick={() => setActiveTab("transactions")}
+                    >
+                      <DollarSign className="mr-2 h-5 w-5" />
+                      Transactions
+                    </Button>
+                  </motion.div>
                 </nav>
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -363,21 +442,6 @@ const Dashboard = () => {
               onValueChange={setActiveTab}
               className="space-y-6"
             >
-              <TabsList className="grid grid-cols-2 w-full bg-gray-800 border border-gray-700 rounded-lg p-1">
-                <TabsTrigger
-                  value="settings"
-                  className="text-gray-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-md transition-all"
-                >
-                  Settings
-                </TabsTrigger>
-                <TabsTrigger
-                  value="admin"
-                  className="text-gray-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-md transition-all"
-                >
-                  Admin Panel
-                </TabsTrigger>
-              </TabsList>
-
               <TabsContent value="settings" className="space-y-6">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -433,10 +497,10 @@ const Dashboard = () => {
                             <Card className="bg-gray-800 border-gray-700">
                               <CardContent className="p-4">
                                 <h3 className="text-lg font-medium text-white mb-2">
-                                  Amount Transmitted
+                                  Fraudulent Transactions Over Time
                                 </h3>
                                 <ResponsiveContainer width="100%" height={200}>
-                                  <LineChart data={amountData}>
+                                  <LineChart data={fraudData}>
                                     <CartesianGrid
                                       strokeDasharray="3 3"
                                       stroke="#444"
@@ -444,10 +508,10 @@ const Dashboard = () => {
                                     <XAxis dataKey="date" stroke="#888" />
                                     <YAxis stroke="#888" />
                                     <Tooltip
-                                      contentStyle={{
-                                        backgroundColor: "#333",
-                                        border: "none",
-                                      }}
+                                      formatter={(value, name, entry) => [
+                                        `$${value}`,
+                                        `Transaction ID: ${entry.payload.transactionId}`,
+                                      ]}
                                     />
                                     <Line
                                       type="monotone"
@@ -463,7 +527,7 @@ const Dashboard = () => {
                             <Card className="bg-gray-800 border-gray-700">
                               <CardContent className="p-4">
                                 <h3 className="text-lg font-medium text-white mb-2">
-                                  Laundering Types
+                                  Fraud Types
                                 </h3>
                                 <ResponsiveContainer width="100%" height={200}>
                                   <PieChart>
@@ -873,6 +937,16 @@ const Dashboard = () => {
                       </Tabs>
                     </CardContent>
                   </Card>
+                </motion.div>
+              </TabsContent>
+
+              <TabsContent value="transactions" className="space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
+                >
+                  <TransactionsTab />
                 </motion.div>
               </TabsContent>
             </Tabs>
