@@ -51,31 +51,35 @@ export class AuthController {
   }
 
   @Post('login')
-async login(@Body() loginDto: { email: string; password: string; deviceId: string }) {
-  const user = await this.authService.validateUser(
-    loginDto.email,
-    loginDto.password,
-    loginDto.deviceId, 
-  );
+  async login(
+    @Body() loginDto: { email: string; password: string; deviceId: string },
+  ) {
+    const user = await this.authService.validateUser(
+      loginDto.email,
+      loginDto.password,
+      loginDto.deviceId,
+    );
 
-  if (!user) {
-    throw new UnauthorizedException('Invalid credentials');
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    console.log(loginDto.deviceId);
+
+    // If deviceId is not in the stored list, trigger OTP verification
+    if (!user.deviceId.includes(loginDto.deviceId)) {
+      console.log("hit");
+      
+      const otpSession = await this.authService.createOtpSession(user);
+      await this.authService.sendOtpEmail(user.email, otpSession.otp);
+
+      return {
+        message: 'OTP sent to email. Verify to complete login.',
+        loggedIn: false,
+      };
+    }
+
+    return this.authService.login(user);
   }
-
-  // If deviceId is not in the stored list, trigger OTP verification
-  if (!user.deviceId.includes(loginDto.deviceId)) {
-    const otpSession = await this.authService.createOtpSession(user);
-    await this.authService.sendOtpEmail(user.email, otpSession.otp);
-
-    return {
-      message: 'OTP sent to email. Verify to complete login.',
-      loggedIn: false,
-    };
-  }
-
-  return this.authService.login(user);
-}
-
 
   @Post('verify-otp-device')
   async verifyOtpDeviceId(
@@ -178,13 +182,20 @@ async login(@Body() loginDto: { email: string; password: string; deviceId: strin
     }
 
     // Generate an access token for the user
-    const accessToken = this.authService.generateAccessToken(user);
+    const accessToken = await this.authService.generateAccessToken(user);
 
     // Save the access token in the database
-    await this.authService.saveAccessToken(user.id, await accessToken);
+    await this.authService.saveAccessToken(user.id, accessToken);
 
-    // Redirect to the appropriate page with the access token and user ID
-    const redirectUrl = `${redirectBaseUrl}/dashboard?access_token=${await accessToken}&userId=${user.id}`;
+    // Ensure deviceId is an array, even if empty
+    const deviceIdArray = Array.isArray(user.deviceId) ? user.deviceId : [];
+
+    // Encode the deviceId array as a JSON string
+    const encodedDeviceIds = encodeURIComponent(JSON.stringify(deviceIdArray));
+
+    // Redirect to the appropriate page with the access token, user ID, and deviceId array
+    const redirectUrl = `${redirectBaseUrl}/dashboard?access_token=${accessToken}&userId=${user.id}&deviceIds=${encodedDeviceIds}`;
+
     return res.redirect(redirectUrl);
   }
 
