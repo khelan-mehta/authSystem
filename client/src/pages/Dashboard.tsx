@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, AlertTriangle, Badge, ShieldX, ShieldAlert } from "lucide-react";
-
+import {
+  Settings,
+  AlertTriangle,
+  Badge,
+  ShieldX,
+  ShieldAlert,
+} from "lucide-react";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -45,6 +51,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { getSession, setSession } from "@/lib/session";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 const clearFilters = {
   transactionId: "",
@@ -71,11 +80,73 @@ const Dashboard = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 10;
-
+  const navigate = useNavigate();
   const [filters, setFilters] = useState(clearFilters);
   const [flaggedUsers, setFlaggedUsers] = useState([]);
   const [sortedUsers, setSortedUsers] = useState(flaggedUsers);
   const [sortOrder, setSortOrder] = useState("asc");
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const token = queryParams.get("access_token");
+    const userId = queryParams.get("userId");
+    const encodedDeviceIds = queryParams.get("deviceIds");
+
+    // Only execute if access_token and userId are present
+    if (!token || !userId) return;
+
+    const checkFingerprint = async () => {
+      try {
+        // Generate device fingerprint
+        const fp = await FingerprintJS.load();
+        const result = await fp.get();
+        const fingerprint = result.visitorId;
+
+        // Decode and parse deviceIds from the URL
+        let deviceIdArray: string[] = [];
+        if (encodedDeviceIds) {
+          try {
+            deviceIdArray = JSON.parse(decodeURIComponent(encodedDeviceIds));
+          } catch (error) {
+            console.error("Error parsing deviceIds:", error);
+          }
+        }
+
+        console.log("Generated Fingerprint:", fingerprint);
+        console.log("Allowed Device IDs:", deviceIdArray);
+
+        // Check if the fingerprint exists in the deviceIdArray
+        if (deviceIdArray.includes(fingerprint)) {
+          // Fingerprint is registered, proceed with login
+          setSession("access_token", token);
+          setSession("userId", userId);
+
+          setTimeout(() => {
+            const accessToken = getSession("access_token");
+            if (!accessToken) {
+              navigate("/login");
+            } else {
+              setTimeout(() => {
+                navigate("/dashboard");
+              }, 1000);
+            }
+          }, 100);
+        } else {
+          // Fingerprint not found, redirect to login with error message
+          toast({
+            title: "Unauthorized",
+            description:
+              "Device not registered. Kindly log in to add this device.",
+          });
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Fingerprint generation error:", error);
+      }
+    };
+
+    checkFingerprint();
+  }, [navigate]);
 
   const sortByRisk = () => {
     const sorted = [...sortedUsers].sort((a, b) => {
@@ -97,8 +168,6 @@ const Dashboard = () => {
     const data = await res.json();
     setTransactions(data);
   };
-
-  
 
   useEffect(() => {
     fetch("http://localhost:3001/api/transactions/flagged-users")
@@ -148,7 +217,14 @@ const Dashboard = () => {
   }, [activeTab, page]);
 
   const handleLogout = () => {
-    // Implement logout logic here
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("userId");
+
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+    navigate("/login");
   };
 
   // Prepare chart data
