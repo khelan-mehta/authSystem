@@ -110,12 +110,13 @@ const Dashboard = () => {
         );
 
         setUser(response.data.user);
-        if (response.data.user.isKycVerified === false) {
+        if (response.data.user?.isKycVerified === false) {
           navigate("/kyc");
         }
         localStorage.setItem("access_token", response.data.newAccessToken);
       } catch (err) {
         setError("Failed to fetch user data");
+        navigate("/login");
       }
     };
 
@@ -451,9 +452,130 @@ const Dashboard = () => {
                   <Card className="bg-gray-900/95 backdrop-blur-md border border-gray-700 shadow-xl rounded-xl">
                     <CardContent className="p-6">
                       {/* <UserSettings /> */}
-                      <p className="text-gray-300">
-                        User settings content goes here.
-                      </p>
+                      <div className="max-w-4xl mx-auto p-6 bg-gray-900 text-white rounded-lg shadow-lg">
+                        <h2 className="text-3xl font-bold text-center mb-8">
+                          User Settings
+                        </h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="bg-gray-800 p-6 rounded-lg shadow-md space-y-4">
+                            <h3 className="text-xl font-semibold mb-4">
+                              Personal Info
+                            </h3>
+                            <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                              <span className="text-gray-400">Username</span>
+                              <span className="text-lg font-medium">
+                                {user?.username || "N/A"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                              <span className="text-gray-400">Email</span>
+                              <span className="text-lg font-medium">
+                                {user?.email || "N/A"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                              <span className="text-gray-400">
+                                Bank Account
+                              </span>
+                              <span className="text-lg font-medium">
+                                {user?.bankAccount || "N/A"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                              <span className="text-gray-400">Balance</span>
+                              <span className="text-lg font-medium">
+                                {user?.balance !== undefined
+                                  ? `$${user?.balance}`
+                                  : "N/A"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="bg-gray-800 p-6 rounded-lg shadow-md space-y-4">
+                            <h3 className="text-xl font-semibold mb-4">
+                              Account Details
+                            </h3>
+                            <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                              <span className="text-gray-400">User ID</span>
+                              <span className="text-lg font-medium">
+                                {user?._id || "N/A"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                              <span className="text-gray-400">Google User</span>
+                              <span className="text-lg font-medium">
+                                {user?.isGoogleUser ? "Yes" : "No"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                              <span className="text-gray-400">
+                                KYC Verified
+                              </span>
+                              <span
+                                className={`text-lg font-medium ${
+                                  user?.isKycVerified
+                                    ? "text-green-400"
+                                    : "text-yellow-400"
+                                }`}
+                              >
+                                {user?.isKycVerified
+                                  ? "Verified ✅"
+                                  : "Pending ⏳"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                              <span className="text-gray-400">
+                                Account Status
+                              </span>
+                              <span
+                                className={`text-lg font-medium ${
+                                  user?.isSuspended
+                                    ? "text-red-400"
+                                    : "text-green-400"
+                                }`}
+                              >
+                                {user?.isSuspended
+                                  ? "Suspended 🚫"
+                                  : "Active ✅"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-10 bg-gray-800 p-6 rounded-lg shadow-md">
+                          <h3 className="text-xl font-semibold mb-4">
+                            Registered Devices
+                          </h3>
+                          {user?.deviceId && user?.deviceId.length > 0 ? (
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm text-left border border-gray-700 rounded-md">
+                                <thead>
+                                  <tr className="bg-gray-700">
+                                    <th className="p-3 text-gray-300">
+                                      Device ID
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {user?.deviceId.map((deviceId, index) => (
+                                    <tr
+                                      key={index}
+                                      className="border-b border-gray-600"
+                                    >
+                                      <td className="p-3">{deviceId}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                            <p className="text-gray-400">
+                              No registered devices found.
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
