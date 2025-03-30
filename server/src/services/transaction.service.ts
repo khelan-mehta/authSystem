@@ -5,12 +5,14 @@ import {
   Transaction,
   TransactionDocument,
 } from '../schemas/transaction.schema';
+import { User } from 'src/schemas/user.schema';
 
 @Injectable()
 export class TransactionService {
   constructor(
     @InjectModel(Transaction.name)
     private transactionModel: Model<TransactionDocument>,
+    @InjectModel('User') private readonly userModel: Model<User>,
   ) {}
 
   // Fetch transactions with sorting & pagination
@@ -25,6 +27,92 @@ export class TransactionService {
     const total = await this.transactionModel.countDocuments();
 
     return { transactions, total };
+  }
+
+  // Fetch transactions where the user is the sender
+  async getTransactionsBySender(bankAccount: number) {
+    return this.transactionModel.find({ Sender_account: bankAccount }).exec();
+  }
+
+  // Fetch transactions where the user is the receiver
+  async getTransactionsByReceiver(bankAccount: number) {
+    return this.transactionModel.find({ Receiver_account: bankAccount }).exec();
+  }
+
+  // Create a new transaction
+  async createTransaction(transactionData: any) {
+    console.log(transactionData);
+
+    const { Sender_account, Receiver_account, Amount } = transactionData;
+
+    // Find sender and receiver
+    console.log('Sender_account Type:', typeof Sender_account, Sender_account);
+    console.log(
+      'Receiver_account Type:',
+      typeof Receiver_account,
+      Receiver_account,
+    );
+    console.log('Amount Type:', typeof Amount, Amount);
+
+    // Convert to Number (Mongoose does not support Long directly)
+    const senderBankAcc = Sender_account;
+    const receiverBankAcc = Receiver_account;
+
+    console.log(
+      'Converted Sender_account Type:',
+      typeof senderBankAcc,
+      senderBankAcc,
+    );
+    console.log(
+      'Converted Receiver_account Type:',
+      typeof receiverBankAcc,
+      receiverBankAcc,
+    );
+
+    // Find sender and receiver
+    const sender = await this.userModel.findOne({
+      bankAccount: senderBankAcc, // Use Number
+    });
+
+    const receiver = await this.userModel.findOne({
+      bankAccount: receiverBankAcc, // Use Number
+    });
+
+    if (!sender) {
+      console.error('❌ Sender not found:', senderBankAcc);
+    }
+    if (!receiver) {
+      console.error('❌ Receiver not found:', receiverBankAcc);
+    }
+
+    if (!sender) {
+      throw new Error('Sender account not found.');
+    }
+    if (!receiver) {
+      throw new Error('Receiver account not found.');
+    }
+
+    // Check sender balance
+    if (sender.balance < Amount) {
+      throw new Error('Insufficient balance.');
+    }
+
+    // Modify balances
+    sender.balance -= Amount;
+    receiver.balance += Amount;
+
+    // Save updated balances
+    await sender.save();
+    await receiver.save();
+
+    // Create and save transaction
+    const newTransaction = new this.transactionModel({
+      ...transactionData,
+    });
+
+    console.log(newTransaction);
+
+    return newTransaction.save();
   }
 
   // Get only transactions flagged as laundering
@@ -52,7 +140,10 @@ export class TransactionService {
   async searchTransactions(filters: any) {
     const query: any = {};
 
-    if (filters.transactionId) query.Transaction_ID = filters.transactionId;
+    if (filters.transactionId) {
+      query.Transaction_ID = filters.transactionId;
+    }
+
     if (filters.date) query.Date = filters.date;
     if (filters.senderAccount) query.Sender_account = filters.senderAccount;
     if (filters.receiverAccount)
@@ -64,7 +155,22 @@ export class TransactionService {
     if (filters.isLaundering !== undefined)
       query.Is_laundering = filters.isLaundering;
 
-    return await this.transactionModel.find(query).exec();
+    const transactions = await this.transactionModel.find(query).exec();
+
+    // If transactionId is provided but doesn't match filters, still include it in the response
+    if (filters.transactionId) {
+      const transactionById = await this.transactionModel
+        .findOne({ Transaction_ID: filters.transactionId })
+        .exec();
+      if (
+        transactionById &&
+        !transactions.some((t) => t.Transaction_ID === filters.transactionId)
+      ) {
+        transactions.push(transactionById);
+      }
+    }
+
+    return transactions;
   }
 
   async getFlaggedUsers() {

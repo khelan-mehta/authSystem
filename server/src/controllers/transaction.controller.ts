@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { TransactionService } from '../services/transaction.service';
 
 @Controller('transactions')
@@ -9,7 +9,7 @@ export class TransactionController {
   @Get()
   async getTransactions(
     @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10
+    @Query('limit') limit: number = 10,
   ) {
     return this.transactionService.getTransactions(Number(page), Number(limit));
   }
@@ -41,7 +41,7 @@ export class TransactionController {
     @Query('amountMin') amountMin?: number,
     @Query('amountMax') amountMax?: number,
     @Query('paymentType') paymentType?: string,
-    @Query('isLaundering') isLaundering?: number
+    @Query('isLaundering') isLaundering?: number,
   ) {
     return this.transactionService.searchTransactions({
       transactionId,
@@ -53,5 +53,56 @@ export class TransactionController {
       paymentType,
       isLaundering: Number(isLaundering),
     });
+  }
+
+  // Fetch transactions for a given bank account (sent and received)
+  @Get('user')
+  async getUserTransactions(@Query('bankAccount') bankAccount: number) {
+    if (!bankAccount) {
+      throw new HttpException('bankAccount is required', HttpStatus.BAD_REQUEST);
+    }
+
+    const sentTransactions = await this.transactionService.getTransactionsBySender(
+      Number(bankAccount),
+    );
+    const receivedTransactions = await this.transactionService.getTransactionsByReceiver(
+      Number(bankAccount),
+    );
+
+    return {
+      sentTransactions,
+      receivedTransactions,
+    };
+  }
+
+  // Create a new transaction
+  @Post()
+  async createTransaction(@Body() transactionData: any) {
+    const requiredFields = [
+      'Time',
+      'Date',
+      'Sender_account',
+      'Receiver_account',
+      'Amount',
+      'Payment_currency',
+      'Received_currency',
+      'Sender_bank_location',
+      'Receiver_bank_location',
+      'Payment_type',
+      'Transaction_ID',
+    ];
+
+    // Validate required fields
+    for (const field of requiredFields) {
+      if (!transactionData[field]) {
+        throw new HttpException(
+          `${field} is required`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    // Create the transaction
+    return this.transactionService.createTransaction(transactionData);
   }
 }

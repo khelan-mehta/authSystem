@@ -1,11 +1,4 @@
-// user.schema.ts
 import { Schema, Document, model } from 'mongoose';
-
-export interface Operation {
-  imageUrl: string;       // Original image URL
-  description: string;
-  processedUrl?: string;  // Processed image URL (optional initially)
-}
 
 export interface User extends Document {
   email: string;
@@ -24,13 +17,15 @@ export interface User extends Document {
   isSuspended?: boolean;
   status?: string;
   gender?: string;
-  deviceId?: any; // Added deviceId field
-  //operations?: Operation[];
+  deviceId?: any;
+  isKycVerified?: boolean;
+  bankAccount?: string;
+  balance?: number; // ✅ Added balance field
 }
 
 export const UserSchema = new Schema<User>({
   email: { type: String, required: true, unique: true },
-  deviceId: { type: [], required: false},
+  deviceId: { type: [], required: false },
   password: { type: String, required: false },
   googleId: { type: String, required: false },
   googleToken: { type: String, required: false },
@@ -46,13 +41,9 @@ export const UserSchema = new Schema<User>({
   isSuspended: { type: Boolean, default: false },
   status: { type: String, required: false },
   gender: { type: String, required: false },
-  //operations: [
-  //  {
-  //    imageUrl: { type: String, required: true },
-  //    description: { type: String, required: true },
-  //    processedUrl: { type: String, required: false }, // New field
-  //  },
-  //],
+  isKycVerified: { type: Boolean, default: false },
+  bankAccount: { type: String, required: false },
+  balance: { type: Number, required: true, default: 0 }, // ✅ Added field with default value
 });
 
 export const UserModel = model<User>('User', UserSchema);

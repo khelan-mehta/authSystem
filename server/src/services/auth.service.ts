@@ -44,26 +44,32 @@ export class AuthService {
     return this.userModel.findOne({ email }).exec();
   }
 
-  async validateUser(email: string, encryptedPassword: string, deviceId: string): Promise<any> {
+  async validateUser(
+    email: string,
+    encryptedPassword: string,
+    deviceId: string,
+  ): Promise<any> {
     const user = await this.findUserByEmail(email);
     if (!user) return null;
-  
+
     // Decrypt password securely
     const secretKey = process.env.SECRET_KEY || 'your_private_key';
     const bytes = CryptoJS.AES.decrypt(encryptedPassword, secretKey);
     const decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
-  
+
     if (!decryptedPassword) {
       throw new UnauthorizedException('Failed to decrypt password');
     }
-  
+
     // Compare password
-    const isPasswordValid = await bcrypt.compare(decryptedPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      decryptedPassword,
+      user.password,
+    );
     if (!isPasswordValid) return null;
-  
+
     return user;
   }
-  
 
   async login(user: any) {
     const payload = { email: user.email, sub: user._id };
@@ -85,10 +91,19 @@ export class AuthService {
     };
   }
 
+  async updateKycStatus(userId: string) {
+    return this.userModel.findByIdAndUpdate(
+      userId,
+      { isKycVerified: true },
+      { new: true },
+    );
+  }
+
   async register(
     email: string,
     encryptedPassword: string,
     username: string,
+    bankAccount: string,
     deviceId: string,
   ) {
     try {
@@ -96,7 +111,6 @@ export class AuthService {
       const bytes = CryptoJS.AES.decrypt(encryptedPassword, secretKey);
       const decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
       console.log('Decrypted Password:', decryptedPassword); // Log the decrypted password
-       
 
       if (!decryptedPassword) {
         throw new Error('Failed to decrypt password');
@@ -121,6 +135,8 @@ export class AuthService {
         email,
         password: hashedPassword,
         deviceId: [deviceId], // Generate a unique device ID
+        bankAccount,
+        balance: 3000, // Initialize balance to 0
         username,
       });
       await newUser.save();

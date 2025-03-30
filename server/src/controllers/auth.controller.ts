@@ -12,6 +12,7 @@ import {
   Param,
   Query,
   NotFoundException,
+  Put,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -67,8 +68,8 @@ export class AuthController {
 
     // If deviceId is not in the stored list, trigger OTP verification
     if (!user.deviceId.includes(loginDto.deviceId)) {
-      console.log("hit");
-      
+      console.log('hit');
+
       const otpSession = await this.authService.createOtpSession(user);
       await this.authService.sendOtpEmail(user.email, otpSession.otp);
 
@@ -128,6 +129,7 @@ export class AuthController {
       email: string;
       password: string;
       username: string;
+      bankAccount: string;
       deviceId: string; // Include deviceId in the registration request
     },
   ) {
@@ -136,6 +138,7 @@ export class AuthController {
         registerDto.email,
         registerDto.password,
         registerDto.username,
+        registerDto.bankAccount,
         registerDto.deviceId, // Pass deviceId to the service
       );
       return response; // Returning accessToken and userId
@@ -253,6 +256,17 @@ export class AuthController {
     }
 
     return { message: 'OTP verified successfully' };
+  }
+
+  @Put('kyc')
+  async updateKycStatus(@Body('userId') userId: string) {
+    const updatedUser = await this.authService.updateKycStatus(userId);
+
+    if (!updatedUser) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    return { message: 'KYC status updated successfully', user: updatedUser };
   }
 
   @Get('fetch-url/fetch')
